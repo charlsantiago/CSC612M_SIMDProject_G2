@@ -36,7 +36,7 @@ static void init_vector(int64_t *B, long long n) {
 
 
 ## I. Program Output with Execution Time for All Cases (screenshot)
-The **CSC612M_G2_Sum**.exe file created after running the Makefile / manual scripts displays all the output of the four kernels for:
+The **CSC612M_G2_Sum**.exe file created after running the Makefile / manual scripts displays all the output of the four kernels for:.
 - `asmfunc1.asm (x86-x64)`,
 - `asmfunc2.asm (XMM Registers)`,
 - `asmfunc3.asm (YMM Registers)`, and

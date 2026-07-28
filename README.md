@@ -42,8 +42,9 @@ The **CSC612M_G2_Sum**.exe file created after running the Makefile / manual scri
 - `asmfunc3.asm (YMM Registers)`, and
 - `main.c (Correctness Check)`
 
+<p align="center">
 <img src="Screenshots/A. Program Output (All Cases).png" alt="All Cases" width="1200">
-
+</p>
 
 
 ## II. Comparative Table of Execution Time and Analysis 
@@ -52,7 +53,9 @@ The **CSC612M_G2_Sum**.exe file created after running the Makefile / manual scri
 - ***Actual:*** YMM is not twice faster than XMM in all vector array sizes. Although, the smaller vector array of 2^20 displays a "larger" speed difference between XMM and YMM than the 2^30 vector size.
 - ***Explanation:*** Addition has an extremely low computational intensity. Most modern CPUs have larger cache than a 2^20 vector size (~8MB), allowing the CPU to fetch data almost instantly. A vector array of size 2^30 is already ~8GB, which can't be handled by the CPU cache. It looks to the RAM to transfer chunks of data to the motherboard basically CPU is stalled by the hardware
 
+<p align="center">
 <img src="Screenshots/B. Comparative Table.png" alt="Comparative Table" width="1000">
+</p>
 
 
 ## III. Program Output - with Correctness Check (C) (Screenshot)
@@ -66,30 +69,60 @@ int64_t sum_c(const int64_t *B, long long n) {
     return sum;
 }
 ```
+<p align="center">
 <img src="Screenshots/C. Program Output (C).png" alt="" width="700">
+</p>
+
 
 ## IV. Program Output - x86-x64 including correctness check (Screenshot)
 The output derived from the x86-x64 - **sum_scalar_asm** will be compared with the Correctness Check (**sum_c**)
+<p align="center">
 <img src="Screenshots/D. Program Output (x86-x64).png" alt="86-x64 " width="700">
+</p>
+
 
 ## V. Program Output - SIMD, XMM Register including correctness check (Screenshot)
 The output derived from the SIMD-XMM - **sum_xmm_asm** will be compared with the Correctness Check (**sum_c**)
+<p align="center">
 <img src="Screenshots/E. Program Output (SIMD XMM).png" alt="SIMD, XMM Register" width="700">
+</p>
+
 
 ## VI. Program Output - SIMD, YMM Register including correctness check (Screenshot)
 The output derived from the SIMD-YMM - **sum_ymm_asm** will be compared with the Correctness Check (**sum_c**)
+<p align="center">
 <img src="Screenshots/F. Program Output (SIMD YMM).png" alt="SIMD, YMM Register" width="700">
+</p>
+
 
 ## VII. Boundary Check for SIMD XMM and SIMD YMM (Screenshot)
 **Boundary Handling** 
 - ***Expectation:*** Regardless if the vector size's divisibility by 4, the whole process should happen exclusively within the XMM and YMM registers
 - ***Actual:*** If the size is not divisible by 4, the program will 'crash'
 - ***Fix:*** Aside from the vector loop that handles the vector sizes divisibly by 4, we implemented a "cleanup" loop (tail_loop) that handles the 1 to 3 extra elements. It performs the same as the loop for non-SIMD x86-64 (asmfunc1.asm) hence the slower run time.
-
+<p align="center">
 <img src="Screenshots/G. Boundary Check for SIMD XMM-YMM.png" alt="Boundary Check for SIMD XMM-YMM" width="700">
+</p>
+
 
 ## VIII. Discuss the problems encountered and solutions made, unique methodology used, AHA moments, etc.
-<img src="Screenshots/H. SASM Reference.png" alt="SASM" width="700">
+During testing, we observed that the execution time varied slightly between runs. This is not caused by the assembly code itself but by factors such as operating system scheduling, background processes, CPU cache, and memory access. Because of this, execution time naturally changes from run to run, so multiple runs are needed for a fair comparison.
+
+Some of our major AHA moments are the following:
+1. **Understanding YMM registers better in NASM than SASM**. During the discovery series when using SASM, it only displays XMM (128-bit) registers and not the full YMM (256-bit) registers. Since the lower 128 bits of a YMM register correspond to its XMM register, we had to inspect and verify the values manually (twice, by splitting the first half and second half). This helped us better understand how AVX extends the register architecture.
+2. **Learning how NASM works behind the scenes.** We realized that SASM internally performs the same steps we do manually: assembling the .asm file into an object file and then linking it to create the executable. This gave us a better understanding of the NASM compilation process. As shown below, this is also similar on how we build the .asm files and how nasm works (as per the NASM official docx)
+<p align="center">
+  <img src="Screenshots/H. SASM Reference.png" alt="SASM" width="700">
+</p>
+
+3. **C vs x86-x64 have almost the same result.** Modern C compilers are already well optimized. The execution time of the scalar x86-64 assembly was only 1.00×–1.07× faster than the C implementation. 
+4. **SIMD provides the real performance improvement.** The YMM implementation consistently outperformed the C baseline. However, the difference between XMM and YMM was relatively small because array summation is a simple operation that becomes limited by memory access rather than computation.
+5. **Memory bandwidth affects performance.** As the input size increased, the speedup decreased from around 1.51× to 1.23×–1.25×. This showed that for large datasets, memory bandwidth becomes the bottleneck, reducing the advantage of SIMD.
+6. **Cache has a significant impact.** YMM achieved around 3.2×–3.3× speedup for small input sizes because the data fits in the CPU cache. For very large inputs, the speedup dropped to about 1.25× since the processor had to access slower main memory.
+7. **Importance of repeated benchmarking.** We observed one case where the x86-64 implementation was slightly slower than C for n = 1003. After verifying the outputs, we concluded that this was simply measurement noise caused by the very short execution time rather than an error in the implementation.
+
+Overall, this project helped us better understand NASM, SIMD programming, compiler optimizations, and how hardware factors such as cache and memory bandwidth affect real-world performance.
+
 
 
 ---
